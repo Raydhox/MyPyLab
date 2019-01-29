@@ -22,11 +22,23 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
         """Print the polynomial as 'aX**n'format."""
         n = self.deg
         P = str(self.coef[0])
+        #To have 'aX + b'
         if n >= 1:
-            P = P + " + " + str(self.coef[1]) + "X"
+            c = self.coef[1]
+            if c == 1:
+                P = "X" + " + " + P
+            else:
+                P = str(c) + "X" + " + " + P
+        #To have 'aX**k'
         if n >= 2:
             for k in range(2, n+1):
-                P = P + " + " + str(self.coef[k]) + "X**" + str(k)
+                c = self.coef[k]
+                if c == 0:
+                    pass
+                elif c == 1:
+                    P = "X**" + str(k) + " + " + P
+                else:
+                    P = str(c) + "X**" + str(k) + " + " + P
         return P
 
     def __getitem__(self, n):
@@ -42,6 +54,14 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
         n = max([self.deg, Q.deg])
         for k in range(n+1):
             S.append(self[k] + Q[k])
+        return Poly(S)
+
+    def __sub__(self, Q):
+        """Q is a Polynomial. Return P-Q, P is the current Polynomial."""
+        S = []
+        n = max([self.deg, Q.deg])
+        for k in range(n+1):
+            S.append(self[k] - Q[k])
         return Poly(S)
 
     def __rmul__(self, K):
@@ -61,6 +81,18 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
                 c = c + self[i]*Q[k-i]
             S.append(c)
         return Poly(S)
+
+    def __truediv__(self, Q):
+        """Q is a Polynomial. Return (D, R), with P = D*Q + R (deg R < deg Q), P is the current Polynomial."""
+        D = Poly()
+        R = self
+        while R.deg >= Q.deg:
+            c = R[-1] / Q[-1]
+            deg = R.deg - Q.deg
+            S = Poly([0]*deg + [c])
+            D = D + S
+            R = R - S*Q
+        return (D, R)
 
     def __pow__(self, n):
         """n is a natural number. Return P**k is the current Polynomial."""
@@ -90,6 +122,6 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
             return S
 
 #For testing
-#P = Poly( [42, 1, 1] )
-#from numpy import poly1d
-#np = poly1d( [1, 1, 42] )
+P = Poly( [42, 1, 1] )
+from numpy import poly1d
+np = poly1d( [1,1,42] )
