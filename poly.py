@@ -8,40 +8,88 @@ def simplest(coefficients):
 
 class Poly:
 
-    def __init__(self, coefficients):
-        """coeff is a list of the coefficients, starting with the lowest.
+    def __init__(self, c=[0]):
+        """c is a list of the coefficients, starting with the lowest.
 Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
-        self.coef = simplest(coefficients)
+        self.coef = simplest(c)
         #Coefficients (-1 = -inf)
         if self.coef == [0]:
             self.deg = -1
         else:
-            self.deg = len(self.coef)
+            self.deg = len(self.coef)-1
 
     def __repr__(self):
-        """Print a Polynome as 'aX**n'."""
+        """Print the polynomial as 'aX**n'format."""
         n = self.deg
         P = str(self.coef[0])
         if n >= 1:
             P = P + " + " + str(self.coef[1]) + "X"
         if n >= 2:
-            for k in range(2, n):
+            for k in range(2, n+1):
                 P = P + " + " + str(self.coef[k]) + "X**" + str(k)
         return P
 
-    def __getitem__(self, index):
-        """Return index """
+    def __getitem__(self, n):
+        """Return the coefficient of X**n."""
         try:
-            return self.coef[index]
+            return self.coef[n]
         except IndexError:
             return 0
 
     def __add__(self, Q):
-        """Add P+Q, P is the current Polynome."""
+        """Q is a Polynomial. Return P+Q, P is the current Polynomial."""
         S = []
         n = max([self.deg, Q.deg])
-        for k in range(n):
-            S.append(self[k] + Q.coef[k])
+        for k in range(n+1):
+            S.append(self[k] + Q[k])
         return Poly(S)
-    
-P = Poly( [42, 1, 1] )
+
+    def __rmul__(self, K):
+        """K is a real or a complex. Return K*P, P is the current Polynomial."""
+        S = []
+        for k in range(self.deg+1):
+            S.append(K*self[k])
+        return Poly(S)
+
+    def __mul__(self, Q):
+        """Q is a Polynomial. Return P*Q, P is the current Polynomial."""
+        S = []
+        for k in range(self.deg + Q.deg +1):
+            #c is the coefficient of X**k
+            c = 0
+            for i in range(k+1):
+                c = c + self[i]*Q[k-i]
+            S.append(c)
+        return Poly(S)
+
+    def __pow__(self, n):
+        """n is a natural number. Return P**k is the current Polynomial."""
+        if n:
+            S = Poly([1])
+            for k in range(n):
+                S = S*self
+            return S
+        else:
+            return Poly([1])
+
+    def __call__(self, Q):
+        """Q is a Polynomial, or a real (or a complex). Return PoQ, P is the current Polynomial."""
+        #Q is a real or a complex
+        if type(Q) in [int, float, complex]:
+            S = 0
+            for k in range(self.deg +1):
+                S = S + self[k]*Q**k
+            return S
+        #Q is a Poly
+        if Q.deg == -1:
+            return Poly([0])
+        else:
+            S = Poly()
+            for k in range( self.deg*Q.deg ):
+                S = S + self[k]*(Q**k)
+            return S
+
+#For testing
+#P = Poly( [42, 1, 1] )
+#from numpy import poly1d
+#np = poly1d( [1, 1, 42] )
