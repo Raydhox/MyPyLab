@@ -110,7 +110,7 @@ Return False if Q is something else."""
         return (self/Q)[1]
 
     def __pow__(self, n):
-        """n is a natural number. Return P**k is the current polynomial."""
+        """n is a natural number. Return P**n is the current polynomial."""
         if n:
             S = Poly([1])
             for k in range(n):
@@ -120,7 +120,7 @@ Return False if Q is something else."""
             return Poly([1])
 
     def __call__(self, Q):
-        """Q is a Polyn, a real or a complex. Return PoQ, P is the current polynomial."""
+        """Q is a Poly, a real or a complex. Return PoQ, P is the current polynomial."""
         #Q is a real or a complex
         if type(Q) in [int, float, complex]:
             S = 0
