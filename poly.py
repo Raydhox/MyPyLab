@@ -138,16 +138,22 @@ Return False if Q is something else."""
 
     def deriv(self, n=1):
         """Return the n-derivative of P (by default, P'), P is the current Polynomial."""
+        #Calculate P'
         S = []
         for k in range(self.deg):
             S.append( self[k+1]*(k+1) )
         #Recursive function
-        if n-1:
+        #If n == 0 (or less)
+        if n-1 < 0:
+            return self
+        #If n > 1, calculate P"
+        elif n-1:
             return Poly(S).deriv(n-1)
+        #If n == 0, return P'
         else:
             return Poly(S)
 
 #For testing
 #P = Poly( [42, 1, 1] )
 #from numpy import poly1d
-#np = poly1d( [1,1,42] )
+#np = poly1d( [1, 1, 42] )
