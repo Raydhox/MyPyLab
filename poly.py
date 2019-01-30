@@ -2,54 +2,52 @@
 #-*- coding: utf-8 -*-
 
 def simplest(coefficients):
-    while coefficients[-1] == 0 and len(coefficients) > 1: 
+    """Delete all the 0 in the end of the list coefficients."""
+    #If the list coefficients is not empty
+    while coefficients and coefficients[-1] == 0: 
         coefficients.pop(-1)
     return coefficients
 
 class Poly:
 
-    def __init__(self, c=[0]):
-        """c is a list of the coefficients, starting with the lowest.
-Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
-        self.coef = simplest(c)
+    def __init__(self, coef=[]):
+        """c is a list of the coefficients of the polynomial, starting with the lowest.
+Create a Poly class (By default, the polynomial 0).
+Exemple: [42,0,1] -> 42 + X**2"""
+        self.coef = simplest(coef)
         #Coefficients (-1 = -inf)
-        if self.coef == [0]:
-            self.deg = -1
-        else:
-            self.deg = len(self.coef)-1
+        self.deg = len(self.coef)-1
 
     def __repr__(self):
         """Print the polynomial as 'aX**n'format."""
         n = self.deg
-        P = str(self.coef[0])
+        P = str(self[0])
         #To have 'aX + b'
-        if n >= 1:
-            c = self.coef[1]
-            if c == 1:
-                P = "X" + " + " + P
-            else:
-                P = str(c) + "X" + " + " + P
+        c = self[1]
+        #Having 'X' and not '1X'
+        if c == 1:
+            P = "X" + " + " + P
+        elif c:
+            P = str(c) + "X" + " + " + P
         #To have 'aX**k'
-        if n >= 2:
-            for k in range(2, n+1):
-                c = self.coef[k]
-                if c == 0:
-                    pass
-                elif c == 1:
-                    P = "X**" + str(k) + " + " + P
-                else:
-                    P = str(c) + "X**" + str(k) + " + " + P
+        for k in range(2, n+1):
+            c = self[k]
+            #Having 'X' and not '1X'
+            if c == 1:
+                P = "X**" + str(k) + " + " + P
+            elif c:
+                P = str(c) + "X**" + str(k) + " + " + P
         return P
 
     def __getitem__(self, n):
-        """Return the coefficient of X**n."""
-        try:
+        """Return the coefficient of X**n. Return 0 if n < 0."""
+        if n <= self.deg and n >= 0:
             return self.coef[n]
-        except IndexError:
+        else:
             return 0
 
     def __add__(self, Q):
-        """Q is a Polynomial. Return P+Q, P is the current Polynomial."""
+        """Q is a Poly. Return P+Q, P is the current Polynomial."""
         S = []
         n = max([self.deg, Q.deg])
         for k in range(n+1):
@@ -57,7 +55,7 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
         return Poly(S)
 
     def __sub__(self, Q):
-        """Q is a Polynomial. Return P-Q, P is the current Polynomial."""
+        """Q is a Poly. Return P-Q, P is the current Polynomial."""
         S = []
         n = max([self.deg, Q.deg])
         for k in range(n+1):
@@ -67,12 +65,12 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
     def __rmul__(self, K):
         """K is a real or a complex. Return K*P, P is the current Polynomial."""
         S = []
-        for k in range(self.deg+1):
-            S.append(K*self[k])
+        for i in range(self.deg+1):
+            S.append(K*self[i])
         return Poly(S)
 
     def __mul__(self, Q):
-        """Q is a Polynomial. Return P*Q, P is the current Polynomial."""
+        """Q is a Poly. Return P*Q, P is the current Polynomial."""
         S = []
         for k in range(self.deg + Q.deg +1):
             #c is the coefficient of X**k
@@ -83,19 +81,27 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
         return Poly(S)
 
     def __truediv__(self, Q):
-        """Q is a Polynomial. Return (D, R), with P = D*Q + R (deg R < deg Q), P is the current Polynomial."""
+        """Q is a Poly. Return (D, R), with P = D*Q + R in the euclidean division, P is the current Polynomial."""
         D = Poly()
         R = self
         while R.deg >= Q.deg:
-            c = R[-1] / Q[-1]
+            c = R[R.deg] / Q[Q.deg]
             deg = R.deg - Q.deg
             S = Poly([0]*deg + [c])
             D = D + S
             R = R - S*Q
         return (D, R)
 
+    def __floordiv__(self, Q):
+        """Q is a Poly. Return D, with P = D*Q + R in the euclidean division, P is the current Polynomial."""
+        return (self/Q)[0]
+
+    def __mod__(self, Q):
+        """Q is a Poly. Return R, with P = D*Q + R in the euclidean division, P is the current Polynomial."""
+        return (self/Q)[1]
+
     def __pow__(self, n):
-        """n is a natural number. Return P**k is the current Polynomial."""
+        """n is a natural number. Return P**k is the current polynomial."""
         if n:
             S = Poly([1])
             for k in range(n):
@@ -105,7 +111,7 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
             return Poly([1])
 
     def __call__(self, Q):
-        """Q is a Polynomial, or a real (or a complex). Return PoQ, P is the current Polynomial."""
+        """Q is a Polyn, a real or a complex. Return PoQ, P is the current polynomial."""
         #Q is a real or a complex
         if type(Q) in [int, float, complex]:
             S = 0
@@ -120,6 +126,17 @@ Create a Polynome class. Exemple: [42,0,1] -> 42 + X**2"""
             for k in range( self.deg*Q.deg ):
                 S = S + self[k]*(Q**k)
             return S
+
+    def deriv(self, n=1):
+        """Return the n-derivative of P (by default, P'), P is the current Polynomial."""
+        S = []
+        for k in range(self.deg):
+            S.append( self[k+1]*(k+1) )
+        #Recursive function
+        if n-1:
+            return Poly(S).deriv(n-1)
+        else:
+            return Poly(S)
 
 #For testing
 P = Poly( [42, 1, 1] )
