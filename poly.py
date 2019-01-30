@@ -46,6 +46,15 @@ Exemple: [42,0,1] -> 42 + X**2"""
         else:
             return 0
 
+    def __eq__(self, Q):
+        """If Q is a Poly object, return True if their coef are equal, else it returns False.
+Return False if Q is something else."""
+        if type(Q) == Poly:
+            return (self.coef == Q.coef)
+        else:
+            return False
+
+    #===Operations===
     def __add__(self, Q):
         """Q is a Poly. Return P+Q, P is the current Polynomial."""
         S = []
@@ -139,6 +148,6 @@ Exemple: [42,0,1] -> 42 + X**2"""
             return Poly(S)
 
 #For testing
-P = Poly( [42, 1, 1] )
-from numpy import poly1d
-np = poly1d( [1,1,42] )
+#P = Poly( [42, 1, 1] )
+#from numpy import poly1d
+#np = poly1d( [1,1,42] )
