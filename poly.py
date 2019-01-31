@@ -26,17 +26,17 @@ Exemple: [42,0,1] -> 42 + X**2"""
         c = self[1]
         #Having 'X' and not '1X'
         if c == 1:
-            P = "X" + " + " + P
+            P = "X + " + P
         elif c:
-            P = str(c) + "X" + " + " + P
+            P = "{}X + ".format(c) + P
         #To have 'aX**k'
         for k in range(2, n+1):
             c = self[k]
             #Having 'X' and not '1X'
             if c == 1:
-                P = "X**" + str(k) + " + " + P
+                P = "X**{} + ".format(k) + P
             elif c:
-                P = str(c) + "X**" + str(k) + " + " + P
+                P = "{}X**{} + ".format(c, k) + P
         return P
 
     def __getitem__(self, n):
@@ -152,6 +152,45 @@ Return False if Q is something else."""
         #If n == 0, return P'
         else:
             return Poly(S)
+        
+    def unit(self):
+        """Return the polynomial X**P.deg, P is the current polynomial."""
+        return Poly( [0]*self.deg + [1] )
+
+def pgcd(P, Q):
+    """P, Q are Poly object.
+Return the PGCD of the polynomial P and Q, using the Euclide algorithm."""
+    
+    #If (P, Q) == (0, 0), return PGCD(0, 0) = 0
+    if (P, Q) == ( Poly(), Poly() ):
+        return Poly()
+    R = P
+    S = Q
+    while S.deg >= 0:
+        T = R % S
+        R = S
+        S = T
+    return R.unit()
+
+def bezout(P, Q):
+    """P, Q are Poly object, with (P, Q) != (0, 0)
+Return ( (U,V), R) using the Euclide algorithm, where (U, V) is a pair of Bézout and R is a PGCD."""
+    
+    #R0 = U0*P + V0*Q
+    R0 = P
+    U0 = Poly([1])
+    V0 = Poly()
+    #R1 = U1*P + V1*Q
+    R1 = Q
+    U1 = Poly()
+    V1 = Poly([1])
+    while R1.deg >= 0:
+        (q, R2) = R0 / R1
+        U2 = U0 - q*U1
+        V2 = V0 - q*V1
+        R0, U0, V0 = R1, U1, V1
+        R1, U1, V1 = R2, U2, V2
+    return ( (U0, V0), R0)
 
 #For testing
 #P = Poly( [42, 1, 1] )
