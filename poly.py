@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 def simplest(coefficients):
-    """Delete all the 0 in the end of the list coefficients."""
+    """Delete all 0 in the end of the list coefficients."""
     #If the list coefficients is not empty
     while coefficients and coefficients[-1] == 0: 
         coefficients.pop(-1)
@@ -49,14 +49,11 @@ Exemple: [42,0,1] -> 42 + X**2"""
     def __eq__(self, Q):
         """If Q is a Poly object, return True if their coef are equal, else it returns False.
 Return False if Q is something else."""
-        if type(Q) == Poly:
-            return (self.coef == Q.coef)
-        else:
-            return False
+        return (type(Q) == Poly) and (self.coef == Q.coef)
 
     #===Operations===
     def __add__(self, Q):
-        """Q is a Poly. Return P+Q, P is the current Polynomial."""
+        """Q is a Poly. Return P+Q, P is the current polynomial."""
         S = []
         n = max([self.deg, Q.deg])
         for k in range(n+1):
@@ -64,7 +61,7 @@ Return False if Q is something else."""
         return Poly(S)
 
     def __sub__(self, Q):
-        """Q is a Poly. Return P-Q, P is the current Polynomial."""
+        """Q is a Poly. Return P-Q, P is the current polynomial."""
         S = []
         n = max([self.deg, Q.deg])
         for k in range(n+1):
@@ -72,14 +69,14 @@ Return False if Q is something else."""
         return Poly(S)
 
     def __rmul__(self, K):
-        """K is a real or a complex. Return K*P, P is the current Polynomial."""
+        """K is a real or a complex. Return K*P, P is the current polynomial."""
         S = []
         for i in range(self.deg+1):
             S.append(K*self[i])
         return Poly(S)
 
     def __mul__(self, Q):
-        """Q is a Poly. Return P*Q, P is the current Polynomial."""
+        """Q is a Poly. Return P*Q, P is the current polynomial."""
         S = []
         for k in range(self.deg + Q.deg +1):
             #c is the coefficient of X**k
@@ -90,7 +87,7 @@ Return False if Q is something else."""
         return Poly(S)
 
     def __truediv__(self, Q):
-        """Q is a Poly. Return (D, R), with P = D*Q + R in the euclidean division, P is the current Polynomial."""
+        """Q is a Poly. Return (D, R), with P = D*Q + R in the euclidean division, P is the current polynomial."""
         D = Poly()
         R = self
         while R.deg >= Q.deg:
@@ -102,11 +99,11 @@ Return False if Q is something else."""
         return (D, R)
 
     def __floordiv__(self, Q):
-        """Q is a Poly. Return D, with P = D*Q + R in the euclidean division, P is the current Polynomial."""
+        """Q is a Poly. Return D, with P = D*Q + R in the euclidean division, P is the current polynomial."""
         return (self/Q)[0]
 
     def __mod__(self, Q):
-        """Q is a Poly. Return R, with P = D*Q + R in the euclidean division, P is the current Polynomial."""
+        """Q is a Poly. Return R, with P = D*Q + R in the euclidean division, P is the current polynomial."""
         return (self/Q)[1]
 
     def __pow__(self, n):
@@ -120,13 +117,14 @@ Return False if Q is something else."""
             return Poly([1])
 
     def __call__(self, Q):
-        """Q is a Poly, a real or a complex. Return PoQ, P is the current polynomial."""
+        """Q is a Poly, a real or a complex. P(Q) return the composition PoQ, P is the current polynomial."""
         #Q is a real or a complex
         if type(Q) in [int, float, complex]:
-            S = 0
-            for k in range(self.deg +1):
-                S = S + self[k]*Q**k
-            return S
+            #Horner algorithm
+            S = self[self.deg]
+            for k in range(self.deg):
+                S = S*Q + self[self.deg-k-1] 
+            return S 
         #Q is a Poly
         if Q.deg == -1:
             return Poly([0])
@@ -137,7 +135,7 @@ Return False if Q is something else."""
             return S
 
     def deriv(self, n=1):
-        """Return the n-derivative of P (by default, P'), P is the current Polynomial."""
+        """Return the n-derivative of P (by default, P'), P is the current polynomial."""
         #Calculate P'
         S = []
         for k in range(self.deg):
@@ -196,3 +194,6 @@ Return ( (U,V), R) using the Euclide algorithm, where (U, V) is a pair of Bézou
 #P = Poly( [42, 1, 1] )
 #from numpy import poly1d
 #np = poly1d( [1, 1, 42] )
+
+
+
