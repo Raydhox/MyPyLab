@@ -68,11 +68,11 @@ Return False if Q is something else."""
             S.append(self[k] - Q[k])
         return Poly(S)
 
-    def __rmul__(self, K):
+    def __rmul__(self, k):
         """K is a real or a complex. Return K*P, P is the current polynomial."""
         S = []
         for i in range(self.deg+1):
-            S.append(K*self[i])
+            S.append(k*self[i])
         return Poly(S)
 
     def __mul__(self, Q):
@@ -147,53 +147,155 @@ Return False if Q is something else."""
         #If n > 1, calculate P"
         elif n-1:
             return Poly(S).deriv(n-1)
-        #If n == 0, return P'
+        #If n == 1, return P'
         else:
             return Poly(S)
         
     def unit(self):
         """Return the polynomial X**P.deg, P is the current polynomial."""
-        return Poly( [0]*self.deg + [1] )
+        if self != Poly():
+            return 1/self[self.deg]*self
+        else:
+            return self
 
-def pgcd(P, Q):
-    """P, Q are Poly object.
-Return the PGCD of the polynomial P and Q, using the Euclide algorithm."""
-    
-    #If (P, Q) == (0, 0), return PGCD(0, 0) = 0
-    if (P, Q) == ( Poly(), Poly() ):
-        return Poly()
-    R = P
-    S = Q
-    while S.deg >= 0:
-        T = R % S
-        R = S
-        S = T
-    return R.unit()
+    def pgcd(self, Q):
+        """Q is a Poly object, P is the current polynomial
+    Return the PGCD of the polynomial P and Q, using the Euclide algorithm."""
+        
+        #If (P, Q) == (0, 0), return PGCD(0, 0) = 0
+        if (self, Q) == ( Poly(), Poly() ):
+            return Poly()
+        R = self
+        S = Q
+        while S.deg >= 0:
+            T = R % S
+            R = S
+            S = T
+        return R.unit()
 
-def bezout(P, Q):
-    """P, Q are Poly object, with (P, Q) != (0, 0)
-Return ( (U,V), R) using the Euclide algorithm, where (U, V) is a pair of Bézout and R is a PGCD."""
-    
-    #R0 = U0*P + V0*Q
-    R0 = P
-    U0 = Poly([1])
-    V0 = Poly()
-    #R1 = U1*P + V1*Q
-    R1 = Q
-    U1 = Poly()
-    V1 = Poly([1])
-    while R1.deg >= 0:
-        (q, R2) = R0 / R1
-        U2 = U0 - q*U1
-        V2 = V0 - q*V1
-        R0, U0, V0 = R1, U1, V1
-        R1, U1, V1 = R2, U2, V2
-    return ( (U0, V0), R0)
+    def bezout(self, Q):
+        """Q is a Poly object, is the current polynomial, with (P, Q) != (0, 0).
+    Return ( (U,V), R) using the Euclide algorithm, where (U, V) is a pair of Bézout and R is a PGCD."""
+        
+        #R0 = U0*P + V0*Q
+        R0 = self
+        U0 = Poly([1])
+        V0 = Poly()
+        #R1 = U1*P + V1*Q
+        R1 = Q
+        U1 = Poly()
+        V1 = Poly([1])
+        while R1.deg >= 0:
+            (q, R2) = R0 / R1
+            U2 = U0 - q*U1
+            V2 = V0 - q*V1
+            R0, U0, V0 = R1, U1, V1
+            R1, U1, V1 = R2, U2, V2
+        return ( (U0, V0), R0)
+
+#===================================================================================================
+class Fraction:
+
+    def __init__(self, A, B=Poly([1]) ):
+        """Return an algbraic fraction. B must be a Poly.
+If A is a Fraction, return A.
+If A is a Polynomial, return the algbraic fraction A/B."""
+        if type(A) == Fraction:
+            self.num, self.den, self.deg = A.num, A.den, A.deg
+        else:
+            self.num = A
+            self.den = B
+            self.deg = A.deg - B.deg
+
+    def __repr__(self):
+        """Print the algebraic fraction as num/den."""
+        n = max( len(str(self.num)), len(str(self.den)) )
+        return "{}\n{}\n{}".format( str(self.num), "-"*n, str(self.den) )
+
+    def __eq__(self, R):
+        """If R is a Fraction object, return True if their euclidean division of numerator / denominator are equal,
+else it returns False.
+Return False if R is not a Fraction object."""
+        return (self.num / self.den == R.num / R.den)
+
+    #===Operations===
+    def __add__(self, R):
+        """R is a Fraction or a Poly. Return S+R, S is the current Fraction."""
+        R = Fraction(R)
+        A = self.num*R.den + R.num*self.den
+        B = self.den*R.den
+        return Fraction(A, B)
+
+    def __sub__(self, Q):
+        """R is a Fraction or a Poly. Return S-R, S is the current Fraction."""
+        R = Fraction(R)
+        A = self.num*R.den - R.num*self.den
+        B = self.den*R.den
+        return Fraction(A, B)
+
+    def __rmul__(self, k):
+        """k is a real or a complex. Return k*S, S is the current Fraction."""
+        R = Fraction(R)
+        return Fraction( k*self.num, self.den)
+
+    def __mul__(self, R):
+        """R is a Fraction or a Poly. Return S*R, S is the current Fraction."""
+        R = Fraction(R)
+        return Fraction( self.num*R.num, self.den*R.den)
+
+    def __truediv__(self, R):
+        """R is a Fraction or a Poly. Return S*1/R, S is the current Fraction."""
+        R = Fraction(R)
+        return Fraction( self.num*R.den, self.den*R.num)
+
+    def __pow__(self, n):
+        """n is a natural number. Return S**n, S is the current Fraction."""
+        if n:
+            R = Fraction( Poly([1]) )
+            for k in range(n):
+                R = R*self
+            return R
+        else:
+            return Fraction( Poly([1]) )
+
+    def __call__(self, X):
+        """X is a real or a complex. Return the composition SoX, S is the current Fraction."""
+        #X is a real or a complex
+        if type(X) in [int, float, complex]:
+            return self.num(X) / self.den(X)
+
+    def deriv(self, n=1):
+        """Return the n-derivative of S (by default, S'), S is the current Fraction."""
+        #Calculate R'
+        A = self.num.deriv()*self.den - self.num*self.den.deriv()
+        B = self.den**2
+        #Recursive function
+        #If n == 0 (or less)
+        if n-1 < 0:
+            return self
+        #If n > 1, calculate R"
+        elif n-1:
+            return Fraction(A, B).deriv(n-1)
+        #If n == 1, return R'
+        else:
+            return Fraction(A, B)
+        
 
 #For testing
-#P = Poly( [42, 1, 1] )
-#from numpy import poly1d
-#np = poly1d( [1, 1, 42] )
+if __name__ == "__main__":
+    P = Poly( [42, 1, 1] )
+    R = Fraction( P, Poly([4,2]) )
+    from numpy import poly1d
+    np = poly1d( [1, 1, 42] )
+
+
+
+
+
+
+
+
+
 
 
 
