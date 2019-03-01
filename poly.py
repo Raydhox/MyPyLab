@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+#Some function use numpy; if np is True, everything is fine,
+#else, return an error for functions that require numpy.poly1d
+try:
+    from numpy import poly1d
+    np = True
+except:
+    np = False
+
 def simplest(coefficients):
     """Delete all 0 in the end of the list coefficients."""
     #If the list coefficients is not empty
@@ -193,7 +201,7 @@ Return False if Q is something else."""
             R1, U1, V1 = R2, U2, V2
         return ( (U0, V0), R0)
 
-#===================================================================================================
+#=====================================================================================================================================================#
 class Fraction:
 
     def __init__(self, A, B=Poly([1]) ):
@@ -207,6 +215,13 @@ If A is a Polynomial, return the algbraic fraction A/B."""
             self.den = B
             self.deg = A.deg - B.deg
 
+    def init(self):
+        """Return a proper rational fraction and create self.mod."""
+        #[FR]: floor est la partie entière
+        self.floor, mod = self.num / self.den
+        self.mod = Fraction(mod, self.den)
+        return self
+            
     def __repr__(self):
         """Print the algebraic fraction as num/den."""
         n = max( len(str(self.num)), len(str(self.den)) )
@@ -279,14 +294,46 @@ Return False if R is not a Fraction object."""
         #If n == 1, return R'
         else:
             return Fraction(A, B)
-        
 
+    def part(self):
+        """Return the partial fraction decomposition. Need numpy.
+Doesn't work for most case."""
+        if np is False:
+            raise ModuleNotFoundError("Need numpy.poly1d.")
+        #Convert to a numpy.poly1d object
+        self.den.coef.reverse()
+        roots = poly1d(self.den.coef).roots
+        self.den.coef.reverse()
+        #Lists of constants
+        C = []
+        self.init()
+        for z in roots:
+            #Convert roots from numpy.complex to complex
+            z = complex(z)
+            #S = self.mod.den / (X-z)
+            S = (self.mod.den // Poly([-z, 1]))
+            C.append( self.mod.num(z) / S(z) )
+        return (self.floor, C)
+
+
+            
 #For testing
 if __name__ == "__main__":
     P = Poly( [42, 1, 1] )
     R = Fraction( P, Poly([4,2]) )
-    from numpy import poly1d
-    np = poly1d( [1, 1, 42] )
+    if np:
+        np = poly1d( [1, 1, 42] )
+
+    P = Poly( [3,0,0,0,0,0,0,1] )
+    Q = Poly( [2,1,1] )**3
+    R = Fraction(P, Q)
+    #print( R.part() )
+
+
+
+
+
+
 
 
 
