@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-#Some function use numpy; if np is True, everything is fine,
-#else, return an error for functions that require numpy.poly1d
-try:
-    from numpy import poly1d
-    np = True
-except:
-    np = False
+###Some function use numpy; if np is True, everything is fine,
+###else, return an error for functions that require numpy.poly1d
+##try:
+##    from numpy import poly1d
+##    np = True
+##except:
+##    np = False
 
 def simplest(coefficients):
     """Delete all 0 in the end of the list coefficients."""
@@ -130,17 +130,24 @@ Return False if Q is something else."""
         if type(Q) in [int, float, complex]:
             #Horner algorithm
             S = self[self.deg]
-            for k in range(self.deg):
+            for k in range(self.deg): #self.deg ou self.deg + 1 ???????????????!!!!!!!!!!!!!!!!!!!!
                 S = S*Q + self[self.deg-k-1] 
             return S 
         #Q is a Poly
-        if Q.deg == -1:
-            return Poly([0])
-        else:
-            S = Poly()
-            for k in range( self.deg*Q.deg ):
-                S = S + self[k]*(Q**k)
-            return S
+        if type(Q) == Poly:
+            if Q.deg == -1:
+                return Poly([0])
+            else:
+                S = Poly()
+                for k in range( self.deg*Q.deg ):
+                    S = S + self[k]*(Q**k)
+                return S
+        #Q is something else that understand (+, *, **)...
+        #S = 0 of type(Q)
+        S = Q - Q
+        for k in range(self.deg+1):
+            S = S + self[k] * Q**k
+        return S
 
     def deriv(self, n=1):
         """Return the n-derivative of P (by default, P'), P is the current polynomial."""
@@ -207,7 +214,7 @@ class Fraction:
     def __init__(self, A, B=Poly([1]) ):
         """Return an algbraic fraction. B must be a Poly.
 If A is a Fraction, return A.
-If A is a Polynomial, return the algbraic fraction A/B."""
+If A is a Polynomial, return the algebraic fraction A/B."""
         if type(A) == Fraction:
             self.num, self.den, self.deg = A.num, A.den, A.deg
         else:
@@ -231,7 +238,7 @@ If A is a Polynomial, return the algbraic fraction A/B."""
         """If R is a Fraction object, return True if their euclidean division of numerator / denominator are equal,
 else it returns False.
 Return False if R is not a Fraction object."""
-        return (self.num / self.den == R.num / R.den)
+        return (self.num * R.den == R.num * self.den)
 
     #===Operations===
     def __add__(self, R):
@@ -241,7 +248,7 @@ Return False if R is not a Fraction object."""
         B = self.den*R.den
         return Fraction(A, B)
 
-    def __sub__(self, Q):
+    def __sub__(self, R):
         """R is a Fraction or a Poly. Return S-R, S is the current Fraction."""
         R = Fraction(R)
         A = self.num*R.den - R.num*self.den
@@ -250,7 +257,6 @@ Return False if R is not a Fraction object."""
 
     def __rmul__(self, k):
         """k is a real or a complex. Return k*S, S is the current Fraction."""
-        R = Fraction(R)
         return Fraction( k*self.num, self.den)
 
     def __mul__(self, R):
@@ -265,19 +271,19 @@ Return False if R is not a Fraction object."""
 
     def __pow__(self, n):
         """n is a natural number. Return S**n, S is the current Fraction."""
-        if n:
+        if n > 0:
             R = Fraction( Poly([1]) )
             for k in range(n):
                 R = R*self
             return R
+        elif n < 0:
+            return Fraction(self.den, self.num).__pow__(-n)
         else:
             return Fraction( Poly([1]) )
 
     def __call__(self, X):
         """X is a real or a complex. Return the composition SoX, S is the current Fraction."""
-        #X is a real or a complex
-        if type(X) in [int, float, complex]:
-            return self.num(X) / self.den(X)
+        return self.num(X) / self.den(X)
 
     def deriv(self, n=1):
         """Return the n-derivative of S (by default, S'), S is the current Fraction."""
@@ -295,25 +301,25 @@ Return False if R is not a Fraction object."""
         else:
             return Fraction(A, B)
 
-    def part(self):
-        """Return the partial fraction decomposition. Need numpy.
-Doesn't work for most case."""
-        if np is False:
-            raise ModuleNotFoundError("Need numpy.poly1d.")
-        #Convert to a numpy.poly1d object
-        self.den.coef.reverse()
-        roots = poly1d(self.den.coef).roots
-        self.den.coef.reverse()
-        #Lists of constants
-        C = []
-        self.init()
-        for z in roots:
-            #Convert roots from numpy.complex to complex
-            z = complex(z)
-            #S = self.mod.den / (X-z)
-            S = (self.mod.den // Poly([-z, 1]))
-            C.append( self.mod.num(z) / S(z) )
-        return (self.floor, C)
+##    def part(self):
+##        """Return the partial fraction decomposition. Need numpy.
+##Doesn't work for most case."""
+##        if np is False:
+##            raise ModuleNotFoundError("Need numpy.poly1d.")
+##        #Convert to a numpy.poly1d object
+##        self.den.coef.reverse()
+##        roots = poly1d(self.den.coef).roots
+##        self.den.coef.reverse()
+##        #Lists of constants
+##        C = []
+##        self.init()
+##        for z in roots:
+##            #Convert roots from numpy.complex to complex
+##            z = complex(z)
+##            #S = self.mod.den / (X-z)
+##            S = (self.mod.den // Poly([-z, 1]))
+##            C.append( self.mod.num(z) / S(z) )
+##        return (self.floor, C)
 
 
             
@@ -324,8 +330,8 @@ if __name__ == "__main__":
     if np:
         np = poly1d( [1, 1, 42] )
 
-    P = Poly( [3,0,0,0,0,0,0,1] )
-    Q = Poly( [2,1,1] )**3
+    P = Poly( [7,6,-2] )
+    Q = Poly( [4,0,5,0,1] )
     R = Fraction(P, Q)
     #print( R.part() )
 
