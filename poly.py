@@ -26,6 +26,15 @@ Exemple: [42,0,1] -> 42 + X**2"""
         #Coefficients (-1 = -inf)
         self.deg = len(self.coef)-1
 
+    def adaptability(fun):
+        def have_polynomial(self, z):
+            """Convert numbers to polynomial if necessary."""
+            if type(z) in [int, float, complex]:
+                return fun(self, Poly([z]))
+            else:
+                return fun(self, z)
+        return have_polynomial
+
     def __repr__(self):
         """Print the polynomial as 'aX**n'format."""
         n = self.deg
@@ -60,6 +69,7 @@ Return False if Q is something else."""
         return (type(Q) == Poly) and (self.coef == Q.coef)
 
     #===Operations===
+    @adaptability
     def __add__(self, Q):
         """Q is a Poly. Return P+Q, P is the current polynomial."""
         S = []
@@ -68,6 +78,7 @@ Return False if Q is something else."""
             S.append(self[k] + Q[k])
         return Poly(S)
 
+    @adaptability
     def __sub__(self, Q):
         """Q is a Poly. Return P-Q, P is the current polynomial."""
         S = []
@@ -83,19 +94,25 @@ Return False if Q is something else."""
             S.append(k*self[i])
         return Poly(S)
 
+    @adaptability
     def __mul__(self, Q):
         """Q is a Poly. Return P*Q, P is the current polynomial."""
-        S = []
-        for k in range(self.deg + Q.deg +1):
-            #c is the coefficient of X**k
-            c = 0
-            for i in range(k+1):
-                c = c + self[i]*Q[k-i]
-            S.append(c)
-        return Poly(S)
+        if type(Q) == Poly:
+            S = []
+            for k in range(self.deg + Q.deg +1):
+                #c is the coefficient of X**k
+                c = 0
+                for i in range(k+1):
+                    c = c + self[i]*Q[k-i]
+                S.append(c)
+            return Poly(S)
+        else:
+            return Q.__rmul__(self)
 
     def __truediv__(self, Q):
         """Q is a Poly. Return (D, R), with P = D*Q + R in the euclidean division, P is the current polynomial."""
+        if type(Q) in [int, float, complex]:
+            return self.__rmul(1/Q)
         D = Poly()
         R = self
         while R.deg >= Q.deg:
@@ -130,7 +147,7 @@ Return False if Q is something else."""
         if type(Q) in [int, float, complex]:
             #Horner algorithm
             S = self[self.deg]
-            for k in range(self.deg): #self.deg ou self.deg + 1 ???????????????!!!!!!!!!!!!!!!!!!!!
+            for k in range(self.deg):   #/!\ What the hell am I playing with self.deg ???????????????????????!!!!
                 S = S*Q + self[self.deg-k-1] 
             return S 
         #Q is a Poly
@@ -327,8 +344,8 @@ Return False if R is not a Fraction object."""
 if __name__ == "__main__":
     P = Poly( [42, 1, 1] )
     R = Fraction( P, Poly([4,2]) )
-    if np:
-        np = poly1d( [1, 1, 42] )
+    #if np:
+    #    np = poly1d( [1, 1, 42] )
 
     P = Poly( [7,6,-2] )
     Q = Poly( [4,0,5,0,1] )
