@@ -60,7 +60,7 @@ else return f(g), f is the current function."""
         else:
             return self.function(g)
 
-Id = Fun(lambda x : x, "Id")
+#Id = Fun(lambda x : x, "Id")
 
 if __name__ == "__main__" :
     f = Fun(lambda x : x**2, ".**2")

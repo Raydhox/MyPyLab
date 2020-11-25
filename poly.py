@@ -112,7 +112,7 @@ Return False if Q is something else."""
     def __truediv__(self, Q):
         """Q is a Poly. Return (D, R), with P = D*Q + R in the euclidean division, P is the current polynomial."""
         if type(Q) in [int, float, complex]:
-            return self.__rmul(1/Q)
+            return self.__rmul__(1/Q)
         D = Poly()
         R = self
         while R.deg >= Q.deg:
